@@ -1,0 +1,357 @@
+@model OTSISampleTemplate.Web.Models.SampleGridViewModel
+@{
+    ViewData["Title"] = "Sample Grid Dashboard";
+}
+
+<!-- Welcome & Action Header -->
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
+    <div>
+        <h2 class="page-title mb-1">Sample Operations Grid</h2>
+        <p class="text-secondary mb-0">Overview of active processing streams, sample records, and status metrics.</p>
+    </div>
+    <div class="d-flex gap-2">
+        <button class="btn btn-outline-secondary d-flex align-items-center gap-2" onclick="window.print()">
+            <i class="bi bi-printer"></i>
+            <span>Print Report</span>
+        </button>
+        <button class="btn btn-primary d-flex align-items-center gap-2" data-bs-toggle="modal" data-bs-target="#newRecordModal">
+            <i class="bi bi-plus-circle-fill"></i>
+            <span>New Record</span>
+        </button>
+    </div>
+</div>
+
+<!-- KPI Metric Cards -->
+<div class="row g-3 mb-4">
+    <div class="col-12 col-sm-6 col-xl-3">
+        <div class="stat-card">
+            <div class="stat-icon-wrapper bg-primary bg-opacity-10 text-primary">
+                <i class="bi bi-stack"></i>
+            </div>
+            <div>
+                <div class="stat-value">@Model.TotalRecords</div>
+                <div class="stat-label">Total Records</div>
+            </div>
+            <div class="stat-badge bg-light text-secondary ms-auto">All Units</div>
+        </div>
+    </div>
+    <div class="col-12 col-sm-6 col-xl-3">
+        <div class="stat-card">
+            <div class="stat-icon-wrapper bg-success bg-opacity-10 text-success">
+                <i class="bi bi-check2-circle"></i>
+            </div>
+            <div>
+                <div class="stat-value">@Model.CompletedRecords</div>
+                <div class="stat-label">Completed</div>
+            </div>
+            <div class="stat-badge bg-success bg-opacity-10 text-success ms-auto">Verified</div>
+        </div>
+    </div>
+    <div class="col-12 col-sm-6 col-xl-3">
+        <div class="stat-card">
+            <div class="stat-icon-wrapper bg-info bg-opacity-10 text-info">
+                <i class="bi bi-arrow-repeat"></i>
+            </div>
+            <div>
+                <div class="stat-value">@Model.ActiveRecords</div>
+                <div class="stat-label">In Progress</div>
+            </div>
+            <div class="stat-badge bg-info bg-opacity-10 text-info ms-auto">Live</div>
+        </div>
+    </div>
+    <div class="col-12 col-sm-6 col-xl-3">
+        <div class="stat-card">
+            <div class="stat-icon-wrapper bg-warning bg-opacity-10 text-warning">
+                <i class="bi bi-exclamation-triangle"></i>
+            </div>
+            <div>
+                <div class="stat-value">@Model.PendingRecords</div>
+                <div class="stat-label">Pending / Attention</div>
+            </div>
+            <div class="stat-badge bg-warning bg-opacity-10 text-warning ms-auto">Action Req.</div>
+        </div>
+    </div>
+</div>
+
+<!-- Filter Toolbar & Table Card -->
+<div class="card grid-card border-0 shadow-sm">
+    <div class="card-header bg-white border-bottom py-3">
+        <form method="get" asp-controller="Home" asp-action="Index" class="row g-2 align-items-center">
+            <div class="col-12 col-md-4">
+                <div class="input-group">
+                    <span class="input-group-text bg-light border-end-0 text-secondary"><i class="bi bi-search"></i></span>
+                    <input type="text" name="search" class="form-control bg-light border-start-0 ps-0" placeholder="Search by ID, Name, Operator..." value="@Model.SearchQuery" />
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <select name="status" class="form-select bg-light" onchange="this.form.submit()">
+                    <option value="All" selected="@(Model.SelectedStatus == "All")">Status: All</option>
+                    <option value="Active" selected="@(Model.SelectedStatus == "Active")">Status: Active</option>
+                    <option value="Completed" selected="@(Model.SelectedStatus == "Completed")">Status: Completed</option>
+                    <option value="Pending" selected="@(Model.SelectedStatus == "Pending")">Status: Pending</option>
+                    <option value="Critical" selected="@(Model.SelectedStatus == "Critical")">Status: Critical</option>
+                </select>
+            </div>
+            <div class="col-6 col-md-3">
+                <select name="location" class="form-select bg-light" onchange="this.form.submit()">
+                    <option value="All" selected="@(Model.SelectedLocation == "All")">Location: All Regions</option>
+                    <option value="New York" selected="@(Model.SelectedLocation == "New York")">New York</option>
+                    <option value="Chicago" selected="@(Model.SelectedLocation == "Chicago")">Chicago</option>
+                    <option value="Dallas" selected="@(Model.SelectedLocation == "Dallas")">Dallas</option>
+                    <option value="Seattle" selected="@(Model.SelectedLocation == "Seattle")">Seattle</option>
+                    <option value="San Francisco" selected="@(Model.SelectedLocation == "San Francisco")">San Francisco</option>
+                </select>
+            </div>
+            <div class="col-12 col-md-2 d-flex gap-2 justify-content-end">
+                <button type="submit" class="btn btn-primary flex-fill">
+                    <i class="bi bi-funnel-fill me-1"></i> Filter
+                </button>
+                @if (!string.IsNullOrEmpty(Model.SearchQuery) || Model.SelectedStatus != "All" || Model.SelectedLocation != "All")
+                {
+                    <a asp-controller="Home" asp-action="Index" class="btn btn-outline-secondary" title="Reset filters">
+                        <i class="bi bi-x-circle"></i>
+                    </a>
+                }
+            </div>
+        </form>
+    </div>
+
+    <!-- Data Table -->
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0 custom-data-table">
+            <thead class="table-light">
+                <tr>
+                    <th scope="col" style="width: 120px;">Record ID</th>
+                    <th scope="col">Sample Name & Category</th>
+                    <th scope="col">Location</th>
+                    <th scope="col">Assigned To</th>
+                    <th scope="col" style="width: 180px;">Units Progress</th>
+                    <th scope="col">Priority</th>
+                    <th scope="col">Status</th>
+                    <th scope="col" class="text-end" style="width: 130px;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model.Items != null && Model.Items.Any())
+                {
+                    @foreach (var item in Model.Items)
+                    {
+                        var percentage = item.TotalUnits > 0 ? (int)((double)item.ProcessedUnits / item.TotalUnits * 100) : 0;
+                        var statusBadgeClass = item.Status switch
+                        {
+                            "Completed" => "badge-status-completed",
+                            "Active" => "badge-status-active",
+                            "Critical" => "badge-status-critical",
+                            _ => "badge-status-pending"
+                        };
+                        var priorityBadgeClass = item.Priority switch
+                        {
+                            "High" => "text-danger bg-danger-subtle",
+                            "Medium" => "text-warning bg-warning-subtle",
+                            _ => "text-secondary bg-secondary-subtle"
+                        };
+
+                        <tr>
+                            <td>
+                                <span class="fw-bold text-primary font-monospace">@item.Id</span>
+                            </td>
+                            <td>
+                                <div class="fw-semibold text-dark">@item.Name</div>
+                                <div class="small text-secondary"><i class="bi bi-tag me-1"></i>@item.Category</div>
+                            </td>
+                            <td>
+                                <div class="d-flex align-items-center gap-1 text-secondary small">
+                                    <i class="bi bi-geo-alt-fill text-danger opacity-75"></i>
+                                    <span>@item.Location</span>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="d-flex align-items-center gap-2">
+                                    <div class="avatar-table">
+                                        @(item.AssignedTo.Length > 0 ? item.AssignedTo[0].ToString() : "U")
+                                    </div>
+                                    <span class="small fw-semibold text-dark">@item.AssignedTo</span>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="d-flex justify-content-between small text-secondary mb-1">
+                                    <span>@item.ProcessedUnits / @item.TotalUnits</span>
+                                    <span class="fw-bold">@percentage%</span>
+                                </div>
+                                <div class="progress" style="height: 6px;">
+                                    <div class="progress-bar @(item.Status == "Completed" ? "bg-success" : item.Status == "Critical" ? "bg-danger" : "bg-primary")"
+                                         role="progressbar"
+                                         style="width: @percentage%;"
+                                         aria-valuenow="@percentage"
+                                         aria-valuemin="0"
+                                         aria-valuemax="100"></div>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="badge @priorityBadgeClass px-2 py-1 rounded-pill">@item.Priority</span>
+                            </td>
+                            <td>
+                                <span class="badge-status @statusBadgeClass">
+                                    <span class="badge-dot"></span>
+                                    @item.Status
+                                </span>
+                            </td>
+                            <td class="text-end">
+                                <div class="btn-group btn-group-sm">
+                                    <button type="button" class="btn btn-outline-light text-dark border-0 btn-action" title="View details" onclick="showDetailsModal('@item.Id', '@item.Name', '@item.Category', '@item.Location', '@item.AssignedTo', '@item.Status', '@item.ProcessedUnits', '@item.TotalUnits')">
+                                        <i class="bi bi-eye-fill text-primary"></i>
+                                    </button>
+                                    <button type="button" class="btn btn-outline-light text-dark border-0 btn-action" title="Quick edit" onclick="alert('Editing @item.Id')">
+                                        <i class="bi bi-pencil-fill text-secondary"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="8" class="text-center py-5">
+                            <div class="text-secondary mb-2 fs-1"><i class="bi bi-inbox"></i></div>
+                            <h5 class="fw-semibold text-dark">No records found</h5>
+                            <p class="text-secondary small mb-3">Try adjusting your search filters or add a new record.</p>
+                            <a asp-controller="Home" asp-action="Index" class="btn btn-sm btn-outline-primary">Clear Filters</a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Table Footer / Pagination -->
+    <div class="card-footer bg-white border-top py-3 d-flex flex-wrap justify-content-between align-items-center gap-2">
+        <div class="small text-secondary">
+            Showing <span class="fw-bold text-dark">@(Model.Items?.Count ?? 0)</span> of <span class="fw-bold text-dark">@Model.TotalRecords</span> total records
+        </div>
+        <nav aria-label="Grid navigation">
+            <ul class="pagination pagination-sm mb-0">
+                <li class="page-item disabled"><a class="page-link" href="#">Previous</a></li>
+                <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                <li class="page-item"><a class="page-link" href="#">2</a></li>
+                <li class="page-item"><a class="page-link" href="#">Next</a></li>
+            </ul>
+        </nav>
+    </div>
+</div>
+
+<!-- Details Modal -->
+<div class="modal fade" id="detailsModal" tabindex="-1" aria-labelledby="detailsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="detailsModalLabel"><i class="bi bi-info-circle me-2"></i>Sample Record Details</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <div class="mb-3">
+                    <label class="text-secondary small fw-semibold">RECORD ID</label>
+                    <div class="fs-5 fw-bold text-primary font-monospace" id="modalId"></div>
+                </div>
+                <div class="mb-3">
+                    <label class="text-secondary small fw-semibold">RECORD NAME</label>
+                    <div class="fw-semibold text-dark" id="modalName"></div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-6">
+                        <label class="text-secondary small fw-semibold">CATEGORY</label>
+                        <div id="modalCategory"></div>
+                    </div>
+                    <div class="col-6">
+                        <label class="text-secondary small fw-semibold">LOCATION</label>
+                        <div id="modalLocation"></div>
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-6">
+                        <label class="text-secondary small fw-semibold">OPERATOR</label>
+                        <div id="modalAssigned"></div>
+                    </div>
+                    <div class="col-6">
+                        <label class="text-secondary small fw-semibold">STATUS</label>
+                        <div id="modalStatus"></div>
+                    </div>
+                </div>
+                <div class="p-3 bg-light rounded-3">
+                    <div class="d-flex justify-content-between small text-secondary mb-1">
+                        <span>Units Progress</span>
+                        <span class="fw-bold" id="modalUnits"></span>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer border-0">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal" onclick="alert('Record exported!')">Export JSON</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Record Modal -->
+<div class="modal fade" id="newRecordModal" tabindex="-1" aria-labelledby="newRecordModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold" id="newRecordModalLabel">Create New Record</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <div class="mb-3">
+                    <label class="form-label small fw-semibold">Record Name</label>
+                    <input type="text" class="form-control" placeholder="e.g. Sample Batch Operation" />
+                </div>
+                <div class="row mb-3">
+                    <div class="col-6">
+                        <label class="form-label small fw-semibold">Category</label>
+                        <select class="form-select">
+                            <option>Production</option>
+                            <option>Logistics</option>
+                            <option>Quality Control</option>
+                            <option>IT & Systems</option>
+                        </select>
+                    </div>
+                    <div class="col-6">
+                        <label class="form-label small fw-semibold">Location</label>
+                        <input type="text" class="form-control" placeholder="e.g. New York, USA" />
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-6">
+                        <label class="form-label small fw-semibold">Assigned Operator</label>
+                        <input type="text" class="form-control" placeholder="Operator Name" />
+                    </div>
+                    <div class="col-6">
+                        <label class="form-label small fw-semibold">Total Units</label>
+                        <input type="number" class="form-control" value="1000" />
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal" onclick="alert('New record saved successfully!')">Save Record</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function showDetailsModal(id, name, cat, loc, assigned, status, proc, total) {
+            document.getElementById('modalId').innerText = id;
+            document.getElementById('modalName').innerText = name;
+            document.getElementById('modalCategory').innerText = cat;
+            document.getElementById('modalLocation').innerText = loc;
+            document.getElementById('modalAssigned').innerText = assigned;
+            document.getElementById('modalStatus').innerText = status;
+            document.getElementById('modalUnits').innerText = proc + ' / ' + total + ' Units';
+
+            const modal = new bootstrap.Modal(document.getElementById('detailsModal'));
+            modal.show();
+        }
+    </script>
+}

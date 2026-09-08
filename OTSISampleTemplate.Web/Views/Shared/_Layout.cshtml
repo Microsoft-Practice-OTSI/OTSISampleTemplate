@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - OTSI Central Portal</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Bootstrap & Icons -->
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+</head>
+<body class="app-body">
+    <!-- Sidebar -->
+    <aside class="app-sidebar" id="appSidebar">
+        <div class="sidebar-header">
+            <div class="brand-logo">
+                <div class="brand-badge">
+                    <i class="bi bi-layers-fill"></i>
+                </div>
+                <div class="brand-text">
+                    <span class="brand-title">OTSI</span>
+                    <span class="brand-subtitle">Portal Core</span>
+                </div>
+            </div>
+            <button class="sidebar-toggle-btn d-lg-none" id="sidebarCloseBtn" type="button" aria-label="Close sidebar">
+                <i class="bi bi-x-lg"></i>
+            </button>
+        </div>
+
+        <div class="sidebar-nav">
+            <div class="nav-section-title">Core Management</div>
+            <ul class="nav flex-column mb-3">
+                <li class="nav-item">
+                    <a class="nav-link active" asp-controller="Home" asp-action="Index">
+                        <i class="bi bi-grid-1x2-fill me-2"></i>
+                        <span>Sample Grid</span>
+                        <span class="badge bg-primary ms-auto">New</span>
+                    </a>
+                </li>
+               
+            </ul>
+
+            <div class="nav-section-title">Administration</div>
+            <ul class="nav flex-column mb-3">
+                <li class="nav-item">
+                    <a class="nav-link" href="javascript:void(0)">
+                        <i class="bi bi-people-fill me-2"></i>
+                        <span>User Access</span>
+                    </a>
+                </li>
+                @* <li class="nav-item">
+                    <a class="nav-link" href="javascript:void(0)">
+                        <i class="bi bi-shield-check me-2"></i>
+                        <span>JWT Security</span>
+                    </a>
+                </li> *@
+                <li class="nav-item">
+                    <a class="nav-link" asp-controller="Home" asp-action="Privacy">
+                        <i class="bi bi-file-earmark-lock-fill me-2"></i>
+                        <span>Privacy Policy</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Sidebar User Footer -->
+        <div class="sidebar-footer">
+            <div class="user-profile-widget">
+                <div class="avatar-circle">
+                    <i class="bi bi-person-circle"></i>
+                </div>
+                <div class="user-meta text-truncate">
+                    <div class="user-name text-truncate">@(User.FindFirst("FullName")?.Value ?? User.Identity?.Name ?? "Admin User")</div>
+                    <div class="user-role text-truncate">@(User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value ?? "Administrator")</div>
+                </div>
+                <form asp-controller="Account" asp-action="Logout" method="post" class="d-inline ms-auto">
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="btn btn-icon-logout" title="Sign Out">
+                        <i class="bi bi-box-arrow-right"></i>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Sidebar Backdrop for Mobile -->
+    <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+
+    <!-- Main Wrapper -->
+    <div class="app-main-wrapper" id="mainWrapper">
+        <!-- Top Navigation Bar -->
+        <header class="app-topbar">
+            <div class="d-flex align-items-center">
+                <button class="topbar-toggle-btn" id="sidebarToggleBtn" type="button" aria-label="Toggle navigation">
+                    <i class="bi bi-list fs-4"></i>
+                </button>
+                <div class="topbar-breadcrumb ms-2 d-none d-sm-block">
+                    <span class="text-secondary">Dashboard</span>
+                    <span class="mx-2 text-secondary">/</span>
+                    <span class="fw-semibold text-dark">@ViewData["Title"]</span>
+                </div>
+            </div>
+
+            <div class="d-flex align-items-center gap-3">
+                <div class="jwt-badge-status d-none d-md-flex align-items-center">
+                    <span class="status-indicator-dot me-2"></span>
+                    <span class="small fw-semibold text-success">JWT Authenticated</span>
+                </div>
+
+                <div class="dropdown">
+                    <button class="btn btn-user-dropdown dropdown-toggle d-flex align-items-center gap-2" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <div class="avatar-small">
+                            <i class="bi bi-person-fill"></i>
+                        </div>
+                        <span class="d-none d-md-inline fw-semibold text-dark">@(User.FindFirst("FullName")?.Value ?? User.Identity?.Name ?? "Account")</span>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0 mt-2">
+                        <li class="dropdown-header text-uppercase small text-muted">Session Info</li>
+                        <li><a class="dropdown-item" href="javascript:void(0)"><i class="bi bi-person me-2"></i>Profile Details</a></li>
+                        <li><a class="dropdown-item" href="javascript:void(0)"><i class="bi bi-shield-lock me-2"></i>Security Tokens</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li>
+                            <form asp-controller="Account" asp-action="Logout" method="post">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="dropdown-item text-danger">
+                                    <i class="bi bi-box-arrow-right me-2"></i>Logout
+                                </button>
+                            </form>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </header>
+
+        <!-- Page Content -->
+        <main class="app-content-container">
+            @RenderBody()
+        </main>
+
+        <!-- Footer -->
+        <footer class="app-footer">
+            <div>&copy; 2026 <strong>OTSI Sample Template</strong>. All rights reserved.</div>
+            <div class="small text-secondary">Secured with ASP.NET Core & JWT Tokens</div>
+        </footer>
+    </div>
+
+    <!-- Scripts -->
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>
